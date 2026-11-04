@@ -1,0 +1,13 @@
+"use client";
+import { useEffect, useMemo, useState } from "react";
+import { Search } from "lucide-react";
+import { destinations, categories } from "@/lib/destinations";
+import { DestinationCard } from "@/components/destination-card";
+import { isSupabaseConfigured } from "@/lib/supabase/client";
+
+export function Catalog({initialQuery,initialCategory}:{initialQuery:string;initialCategory:string}) {
+  const [query,setQuery]=useState(initialQuery);const [category,setCategory]=useState(categories.includes(initialCategory)?initialCategory:"Semua");const [sort,setSort]=useState("popular");const [items,setItems]=useState(destinations);const [loading,setLoading]=useState(isSupabaseConfigured);
+  useEffect(()=>{if(!isSupabaseConfigured)return;let canceled=false;fetch("/api/destinations").then(r=>r.json()).then(data=>{if(!canceled&&Array.isArray(data.destinations))setItems(data.destinations)}).catch(()=>{}).finally(()=>{if(!canceled)setLoading(false)});return()=>{canceled=true}},[]);
+  const filtered=useMemo(()=>items.filter(d=>(category==="Semua"||d.category===category)&&`${d.name} ${d.location} ${d.category}`.toLowerCase().includes(query.toLowerCase())).sort((a,b)=>sort==="price-low"?a.price-b.price:sort==="price-high"?b.price-a.price:parseFloat(b.rating)-parseFloat(a.rating)),[items,category,query,sort]);
+  return <><div className="catalog-toolbar"><label className="search-input field" style={{display:"flex",alignItems:"center",gap:8}}><Search size={17}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Cari destinasi atau lokasi" aria-label="Cari destinasi" style={{border:0,outline:0,width:"100%"}}/></label><select className="select-field" value={category} onChange={e=>setCategory(e.target.value)} aria-label="Filter kategori">{categories.map(c=><option key={c}>{c}</option>)}</select><select className="select-field" value={sort} onChange={e=>setSort(e.target.value)} aria-label="Urutkan destinasi"><option value="popular">Paling populer</option><option value="price-low">Harga terendah</option><option value="price-high">Harga tertinggi</option></select></div><p className="result-count">{loading?"Memuat destinasi…":`Menampilkan ${filtered.length} dari ${items.length} destinasi`}</p>{loading?<div className="destination-grid">{[1,2,3].map(n=><div className="skeleton" key={n} style={{height:340}}/>)}</div>:filtered.length?<div className="destination-grid">{filtered.map(d=><DestinationCard key={d.slug} destination={d}/>)}</div>:<div className="empty-state"><strong>Destinasi tidak ditemukan</strong><p>Coba kata kunci atau kategori lain.</p><button className="btn btn-outline" onClick={()=>{setQuery("");setCategory("Semua")}}>Hapus filter</button></div>}</>;
+}

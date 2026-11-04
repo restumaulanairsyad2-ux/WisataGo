@@ -1,0 +1,4 @@
+"use client";
+/* eslint react-hooks/set-state-in-effect: "off" -- hydrate the signed-in demo profile from browser storage after mount. */
+import { useEffect,useState } from "react";
+export default function AdminUsers(){const [profile,setProfile]=useState<{name?:string;email?:string}|null>(null);useEffect(()=>{try{setProfile(JSON.parse(localStorage.getItem("wisatago.demo.profile")||"null"))}catch{}},[]);return <><span className="eyebrow">Akun aplikasi</span><h1 style={{fontSize:26,color:"#022c22",margin:"7px 0 18px"}}>Pengguna</h1><div className="detail-panel"><strong>{profile?.name??"Administrator Demo"}</strong><p style={{fontSize:13,color:"#64748b"}}>{profile?.email??"admin@wisatago.demo"}</p><span className="status-badge">Admin · demo lokal</span></div><p style={{fontSize:11,color:"#64748b"}}>Daftar pengguna lengkap tersedia setelah autentikasi Supabase dikonfigurasi. Akun tidak dapat mengubah role sendiri.</p></>}

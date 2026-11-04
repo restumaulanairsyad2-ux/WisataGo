@@ -1,0 +1,3 @@
+import { NextResponse } from "next/server";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+export async function POST(_:Request,{params}:{params:Promise<{bookingId:string}>}){if(process.env.DEMO_PAYMENT_ENABLED!=="true")return NextResponse.json({error:"Pembayaran demo server belum diaktifkan."},{status:403});const {bookingId}=await params;const sb=await createSupabaseServerClient();const {data:{user}}=await sb.auth.getUser();if(!user)return NextResponse.json({error:"Masuk diperlukan."},{status:401});const {data,error}=await sb.rpc("confirm_demo_payment",{p_booking_id:bookingId});if(error)return NextResponse.json({error:error.message},{status:400});return NextResponse.json(data)}
